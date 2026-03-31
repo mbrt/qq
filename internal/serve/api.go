@@ -1,3 +1,4 @@
+// Package serve implements the qq web server and API handlers.
 package serve
 
 import (

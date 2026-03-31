@@ -1,3 +1,4 @@
+// Package template provides HTML template rendering from an fs.FS root.
 package template
 
 import (
@@ -69,10 +70,12 @@ func addTemplate(tmpl *template.Template, root fs.FS, tpath string) (*template.T
 	return tmpl.Parse(text)
 }
 
+// Templater holds parsed templates and renders them by name.
 type Templater struct {
 	ts map[string]*template.Template
 }
 
+// Render executes the named template with the given data, writing to w.
 func (t *Templater) Render(w io.Writer, name string, data any) error {
 	tmpl, ok := t.ts[name]
 	if !ok {

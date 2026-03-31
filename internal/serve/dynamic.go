@@ -88,4 +88,3 @@ type searchViewModel struct {
 	index.SearchResult
 	Query string
 }
-

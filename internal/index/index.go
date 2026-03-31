@@ -1,3 +1,4 @@
+// Package index provides full-text search indexing backed by Bleve.
 package index
 
 import (
@@ -19,10 +20,12 @@ import (
 
 const searchMaxResults = 20
 
+// Index wraps a Bleve full-text search index.
 type Index struct {
 	index bleve.Index
 }
 
+// ReconcileStats reports counts of documents added, updated, removed, and unchanged.
 type ReconcileStats struct {
 	Added     int
 	Updated   int
@@ -30,12 +33,14 @@ type ReconcileStats struct {
 	Unchanged int
 }
 
+// SearchResult holds the outcome of a search query.
 type SearchResult struct {
 	Total int
 	Took  time.Duration
 	Hits  []SearchHit
 }
 
+// SearchHit represents a single document matching a search query.
 type SearchHit struct {
 	ID        string
 	Score     float64
@@ -51,9 +56,8 @@ type SearchHit struct {
 
 // Open opens or creates a Bleve index at the given path.
 func Open(path string) (*Index, error) {
-	if err := os.MkdirAll(path, 0o755); err != nil {
-		// Try anyway; the directory might already exist.
-	}
+	// Best-effort: create parent directories if missing.
+	_ = os.MkdirAll(path, 0o755)
 	idx, err := bleve.Open(path)
 	if err != nil {
 		// Index doesn't exist, create it.
@@ -66,6 +70,7 @@ func Open(path string) (*Index, error) {
 	return &Index{index: idx}, nil
 }
 
+// Close releases the underlying Bleve index resources.
 func (idx *Index) Close() error {
 	return idx.index.Close()
 }
@@ -207,6 +212,7 @@ func (idx *Index) Read(id string) (ReadResult, error) {
 	return result, nil
 }
 
+// ReadResult holds the full contents and metadata of a single document.
 type ReadResult struct {
 	Title        string
 	Author       string

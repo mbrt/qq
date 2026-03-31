@@ -1,3 +1,5 @@
+// Package app provides high-level application workflows such as loading
+// configuration and building the search index.
 package app
 
 import (

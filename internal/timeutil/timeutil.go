@@ -1,3 +1,4 @@
+// Package timeutil provides human-readable time formatting helpers.
 package timeutil
 
 import (

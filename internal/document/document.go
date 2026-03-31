@@ -1,3 +1,5 @@
+// Package document defines the Document type and parsing of markdown files
+// with YAML frontmatter.
 package document
 
 import (
@@ -10,6 +12,7 @@ import (
 
 const maxExcerptLen = 200
 
+// Document represents a parsed markdown file with its metadata.
 type Document struct {
 	ID       string
 	Path     string

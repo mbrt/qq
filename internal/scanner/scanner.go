@@ -1,3 +1,4 @@
+// Package scanner walks configured directories and parses markdown documents.
 package scanner
 
 import (

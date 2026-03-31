@@ -16,6 +16,7 @@ import (
 	"github.com/mbrt/qq/internal/index"
 )
 
+// NewServer creates an HTTP server with search, read, and static asset routes.
 func NewServer(idx *index.Index, uiPath string, dirs []config.Directory) (*Server, error) {
 	api := &apiHandler{index: idx, dirs: dirs}
 
@@ -42,12 +43,14 @@ func NewServer(idx *index.Index, uiPath string, dirs []config.Directory) (*Serve
 	return s, nil
 }
 
+// Server is the qq HTTP server.
 type Server struct {
 	mux     *http.ServeMux
 	api     *apiHandler
 	dynamic dynamicHandler
 }
 
+// Serve starts the HTTP server on the given port, blocking until ctx is cancelled.
 func (s *Server) Serve(ctx context.Context, port int) error {
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

@@ -1,3 +1,4 @@
+// Package config handles loading and parsing the qq configuration file.
 package config
 
 import (
@@ -9,15 +10,19 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config holds the top-level application configuration.
 type Config struct {
 	Directories []Directory `yaml:"directories"`
 	IndexPath   string      `yaml:"index_path"`
 }
 
+// Directory represents a configured directory to scan for documents.
 type Directory struct {
 	Path string `yaml:"path"`
 }
 
+// Load reads and parses the configuration from the given path.
+// If path is empty, it defaults to ~/.config/qq/config.yaml.
 func Load(path string) (Config, error) {
 	if path == "" {
 		home, err := os.UserHomeDir()

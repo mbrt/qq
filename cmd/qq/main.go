@@ -1,3 +1,4 @@
+// Package main is the entry point for the qq CLI.
 package main
 
 import (
@@ -90,7 +91,7 @@ func runServe(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("creating server: %w", err)
 	}
-	slog.Info("Starting server", "port", servePort)
+	slog.Info(fmt.Sprintf("Starting server on http://localhost:%d", servePort))
 	return s.Serve(ctx, servePort)
 }
 

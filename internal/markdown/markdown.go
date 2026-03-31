@@ -1,3 +1,4 @@
+// Package markdown converts markdown text to HTML and plain text.
 package markdown
 
 import (
