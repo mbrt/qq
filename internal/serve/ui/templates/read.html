@@ -22,7 +22,13 @@
             </div>
             {{if .URL}}
             <div class="col">
-              <a href="{{.URL}}" target="_blank" rel="noopener" class="text-muted">original</a>
+              <a href="{{.URL}}" target="_blank" rel="noopener" class="text-muted me-1">original</a>
+              {{if .Path}}{{template "filepath.html" .Path}}{{end}}
+            </div>
+            {{end}}
+            {{if and .Path (not .URL)}}
+            <div class="col">
+              {{template "filepath.html" .Path}}
             </div>
             {{end}}
           </div>

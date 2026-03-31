@@ -25,3 +25,14 @@ mark {
   font-weight: 700;
   font-size: 1.3rem;
 }
+
+.copy-path-btn {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  vertical-align: middle;
+}
+
+.copy-path-btn:hover,
+.copy-path-btn:focus {
+  opacity: 1;
+}

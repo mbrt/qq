@@ -33,16 +33,23 @@
           </ul>
           {{end}}
           <div class="card-footer">
-            <div class="row row-cols-auto">
-              <div class="col">
-                {{if .Source}}{{template "source.html" .Source}}{{end}}
-                {{range .Tags}}
-                  {{template "tag.html" .}}
+            <div class="d-flex align-items-center">
+              <div class="row row-cols-auto flex-grow-1">
+                <div class="col">
+                  {{if .Source}}{{template "source.html" .Source}}{{end}}
+                  {{range .Tags}}
+                    {{template "tag.html" .}}
+                  {{end}}
+                </div>
+                {{if not .Updated.IsZero}}
+                <div class="col border-start">
+                  <small>{{.Updated | toTimeAgo}}</small>
+                </div>
                 {{end}}
               </div>
-              {{if not .Updated.IsZero}}
-              <div class="col border-start">
-                <small>{{.Updated | toTimeAgo}}</small>
+              {{if .Path}}
+              <div class="ms-auto">
+                {{template "filepath.html" .Path}}
               </div>
               {{end}}
             </div>

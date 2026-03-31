@@ -1,1 +1,18 @@
 <script src="/assets/vendor/bootstrap.bundle.min.js"></script>
+<script>
+  'use strict';
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.copy-path-btn');
+    if (!btn) return;
+    const path = btn.dataset.path;
+    const text = path.includes(' ') ? "'" + path + "'" : path;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.querySelector('.copy-icon').classList.add('d-none');
+      btn.querySelector('.check-icon').classList.remove('d-none');
+      setTimeout(() => {
+        btn.querySelector('.copy-icon').classList.remove('d-none');
+        btn.querySelector('.check-icon').classList.add('d-none');
+      }, 1500);
+    });
+  });
+</script>
