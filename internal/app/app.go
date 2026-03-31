@@ -34,11 +34,14 @@ func LoadAndIndex(ctx context.Context, cfgFile string) (*index.Index, config.Con
 		idx.Close()
 		return nil, cfg, fmt.Errorf("reconciling index: %w", err)
 	}
-	slog.Info("Index reconciled",
-		"added", stats.Added,
-		"updated", stats.Updated,
-		"removed", stats.Removed,
-		"unchanged", stats.Unchanged)
+	reindexed := stats.Added + stats.Updated + stats.Removed
+	if reindexed > 0 {
+		slog.Info("Re-indexed documents",
+			"added", stats.Added,
+			"updated", stats.Updated,
+			"removed", stats.Removed)
+	}
+	slog.Info("Index up to date", "documents", stats.Unchanged+stats.Added+stats.Updated)
 
 	return idx, cfg, nil
 }

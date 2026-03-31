@@ -44,6 +44,7 @@ type SearchResult struct {
 type SearchHit struct {
 	ID        string
 	Score     float64
+	Path      string
 	Title     string
 	Source    string
 	Author    string
@@ -138,7 +139,7 @@ func (idx *Index) Search(query string) (SearchResult, error) {
 	req.Size = searchMaxResults
 	req.Highlight = bleve.NewHighlightWithStyle("html")
 	req.Highlight.Fields = []string{"contents"}
-	req.Fields = []string{"title", "source", "author", "url", "tags", "updated", "excerpt"}
+	req.Fields = []string{"title", "path", "source", "author", "url", "tags", "updated", "excerpt"}
 
 	res, err := idx.index.Search(req)
 	if err != nil {
@@ -154,6 +155,7 @@ func (idx *Index) Search(query string) (SearchResult, error) {
 		hits = append(hits, SearchHit{
 			ID:        hit.ID,
 			Score:     hit.Score,
+			Path:      stringField(hit.Fields, "path"),
 			Title:     stringField(hit.Fields, "title"),
 			Source:    stringField(hit.Fields, "source"),
 			Author:    stringField(hit.Fields, "author"),
@@ -187,6 +189,8 @@ func (idx *Index) Read(id string) (ReadResult, error) {
 		switch f.Name() {
 		case "title":
 			result.Title = fieldText(f)
+		case "path":
+			result.Path = fieldText(f)
 		case "author":
 			result.Author = fieldText(f)
 		case "url":
@@ -215,6 +219,7 @@ func (idx *Index) Read(id string) (ReadResult, error) {
 // ReadResult holds the full contents and metadata of a single document.
 type ReadResult struct {
 	Title        string
+	Path         string
 	Author       string
 	URL          string
 	Source       string
@@ -269,6 +274,7 @@ func (idx *Index) getUpdatedTime(id string) (time.Time, error) {
 
 type indexDoc struct {
 	Title    string    `json:"title"`
+	Path     string    `json:"path,omitempty"`
 	Author   string    `json:"author,omitempty"`
 	URL      string    `json:"url,omitempty"`
 	Source   string    `json:"source,omitempty"`
@@ -281,6 +287,7 @@ type indexDoc struct {
 func docToIndex(d document.Document) indexDoc {
 	return indexDoc{
 		Title:    d.Title,
+		Path:     d.Path,
 		Author:   d.Author,
 		URL:      d.URL,
 		Source:   d.Source,
@@ -311,6 +318,7 @@ func buildMapping() mapping.IndexMapping {
 
 	docMapping := bleve.NewDocumentMapping()
 	docMapping.AddFieldMappingsAt("title", textField)
+	docMapping.AddFieldMappingsAt("path", storedOnlyKeyword)
 	docMapping.AddFieldMappingsAt("contents", textField)
 	docMapping.AddFieldMappingsAt("tags", keywordField)
 	docMapping.AddFieldMappingsAt("source", keywordField)

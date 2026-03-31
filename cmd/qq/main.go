@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/mbrt/qq/internal/app"
@@ -96,10 +97,18 @@ func runServe(_ *cobra.Command, _ []string) error {
 }
 
 func printSearchResults(w io.Writer, results index.SearchResult) {
+	bold := color.New(color.Bold)
+	cyan := color.New(color.FgCyan)
+	faint := color.New(color.Faint)
+
 	fmt.Fprintf(w, "%d results (%s)\n", results.Total, results.Took)
 	for _, hit := range results.Hits {
 		fmt.Fprintln(w)
-		fmt.Fprintf(w, "  %s\n", hit.Title)
+		bold.Fprintf(w, "- %s\n", hit.Title)
+
+		if hit.Path != "" {
+			cyan.Fprintf(w, "  %s\n", formatPath(hit.Path))
+		}
 
 		var parts []string
 		if hit.Source != "" {
@@ -112,10 +121,33 @@ func printSearchResults(w io.Writer, results index.SearchResult) {
 			parts = append(parts, timeutil.TimeAgo(time.Now(), hit.Updated))
 		}
 		if len(parts) > 0 {
-			fmt.Fprintf(w, "  %s\n", strings.Join(parts, " | "))
+			faint.Fprintf(w, "  %s\n", strings.Join(parts, " | "))
 		}
-		for _, f := range hit.Fragments {
-			fmt.Fprintf(w, "  %s\n", index.StripHTMLTags(f))
+
+		if len(hit.Fragments) > 0 {
+			snippet := index.StripHTMLTags(hit.Fragments[0])
+			for line := range strings.SplitSeq(snippet, "\n") {
+				fmt.Fprintf(w, "      %s\n", line)
+			}
 		}
 	}
+}
+
+func formatPath(path string) string {
+	short := shortenHome(path)
+	if strings.Contains(short, " ") {
+		return "'" + short + "'"
+	}
+	return short
+}
+
+func shortenHome(path string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+	if rel, ok := strings.CutPrefix(path, home); ok {
+		return "~" + rel
+	}
+	return path
 }
