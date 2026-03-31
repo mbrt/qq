@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+<head>
+  {{template "head.html"}}
+  {{if .Query}}
+    <title>{{.Query}} - qq search</title>
+  {{else}}
+    <title>qq search</title>
+  {{end}}
+</head>
+<body>
+  <main>
+    <div class="container">
+      {{template "header.html" .}}
+
+      <div>
+        <div class="mb-2 ms-1 text-muted">{{.Total}} results ({{.Took | displayDuration}})</div>
+        {{range .Hits}}
+        <div class="card mb-2">
+          <div class="card-body">
+            <a href="/read/{{.ID}}" class="text-decoration-none"><h5 class="card-title">{{.Title}}</h5></a>
+            {{if .Excerpt}}
+              <p class="card-text text-muted small">{{.Excerpt}}</p>
+            {{end}}
+          </div>
+          {{if .Fragments}}
+          <ul class="list-group list-group-flush">
+            {{range .Fragments}}
+              <li class="list-group-item small">{{. | safeHTML}}</li>
+            {{end}}
+          </ul>
+          {{end}}
+          <div class="card-footer text-muted small">
+            {{if .Source}}<span class="badge bg-secondary me-1">{{.Source}}</span>{{end}}
+            {{range .Tags}}<span class="badge bg-info me-1">{{.}}</span>{{end}}
+            {{if not .Updated.IsZero}}<span>{{.Updated | toTimeAgo}}</span>{{end}}
+          </div>
+        </div>
+        {{end}}
+      </div>
+
+      {{if .Total}}
+        {{template "footer.html"}}
+      {{end}}
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

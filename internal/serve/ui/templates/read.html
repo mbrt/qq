@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+<head>
+  {{template "head.html"}}
+  <link href="/assets/read.css" rel="stylesheet">
+  <title>qq - {{.Title}}</title>
+</head>
+<body>
+  <main>
+    <div class="container">
+      {{template "header.html" .}}
+
+      <article>
+        <div class="text-center mb-4">
+          <h1>{{.Title}}</h1>
+          <div class="text-muted">
+            {{if .Author}}by {{.Author}} &middot; {{end}}
+            {{if not .Updated.IsZero}}{{.Updated | toTimeAgo}}{{end}}
+            {{if .URL}} &middot; <a href="{{.URL}}" target="_blank" rel="noopener">original</a>{{end}}
+          </div>
+          {{if .Tags}}
+          <div class="mt-2">
+            {{if .Source}}<span class="badge bg-secondary me-1">{{.Source}}</span>{{end}}
+            {{range .Tags}}<span class="badge bg-info me-1">{{.}}</span>{{end}}
+          </div>
+          {{end}}
+        </div>
+        <div class="article-content">
+          {{.HTMLContents}}
+        </div>
+      </article>
+
+      {{template "footer.html"}}
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

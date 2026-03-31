@@ -1,0 +1,9 @@
+# Binaries
+/qq
+
+# Index data
+*.bleve/
+
+# IDE
+*.swp
+*.swo
