@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"path/filepath"
 	"runtime"
 
 	"github.com/spf13/cobra"
@@ -41,9 +40,7 @@ func runServe(_ *cobra.Command, _ []string) {
 	cobra.CheckErr(err)
 	defer idx.Close()
 
-	wd, _ := os.Getwd()
-	uiPath := filepath.Join(wd, "internal", "serve", "ui")
-	s, err := serve.NewServer(idx, uiPath, cfg.Directories)
+	s, err := serve.NewServer(idx, cfg.Directories)
 	cobra.CheckErr(err)
 
 	onReady := func(port int) {

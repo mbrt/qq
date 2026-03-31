@@ -1,17 +1,13 @@
 package serve
 
 import (
-	"log/slog"
+	"io/fs"
 	"net/http"
 	"os"
 )
 
-func staticFSHandler(rootPath string) http.Handler {
-	if _, err := os.Stat(rootPath); err != nil {
-		slog.Warn("Static assets path not found", "path", rootPath, "err", err)
-	}
-	fs := os.DirFS(rootPath)
-	return http.FileServer(justFilesFS{http.FS(fs)})
+func staticFSHandler(fsys fs.FS) http.Handler {
+	return http.FileServer(justFilesFS{http.FS(fsys)})
 }
 
 type justFilesFS struct {

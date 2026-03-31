@@ -6,27 +6,33 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net"
 	"net/http"
-	"os"
-	"path"
 
 	"github.com/mbrt/qq/internal/config"
 	"github.com/mbrt/qq/internal/index"
 )
 
 // NewServer creates an HTTP server with search, read, and static asset routes.
-func NewServer(idx *index.Index, uiPath string, dirs []config.Directory) (*Server, error) {
+func NewServer(idx *index.Index, dirs []config.Directory) (*Server, error) {
 	api := &apiHandler{index: idx, dirs: dirs}
 
-	tmplFS := os.DirFS(path.Join(uiPath, "templates"))
+	tmplFS, err := fs.Sub(uiFS, "ui/templates")
+	if err != nil {
+		return nil, fmt.Errorf("getting templates sub-FS: %w", err)
+	}
 	dyn, err := newDynamicHandler(api, tmplFS)
 	if err != nil {
 		return nil, fmt.Errorf("creating dynamic handler: %w", err)
 	}
 
-	staticHandler := staticFSHandler(path.Join(uiPath, "assets"))
+	assetsFS, err := fs.Sub(uiFS, "ui/assets")
+	if err != nil {
+		return nil, fmt.Errorf("getting assets sub-FS: %w", err)
+	}
+	staticHandler := staticFSHandler(assetsFS)
 
 	mux := http.NewServeMux()
 	s := &Server{
