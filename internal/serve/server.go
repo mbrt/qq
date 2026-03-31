@@ -51,9 +51,9 @@ type Server struct {
 }
 
 // Serve starts the HTTP server on the given port, blocking until ctx is cancelled.
-// If onReady is non-nil, it is called with the listener address once the server
+// If onReady is non-nil, it is called with the resolved port once the server
 // is accepting connections.
-func (s *Server) Serve(ctx context.Context, port int, onReady func(addr string)) error {
+func (s *Server) Serve(ctx context.Context, port int, onReady func(port int)) error {
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return fmt.Errorf("listening on port %d: %w", port, err)
@@ -69,7 +69,7 @@ func (s *Server) Serve(ctx context.Context, port int, onReady func(addr string))
 		srv.Shutdown(context.Background())
 	}()
 	if onReady != nil {
-		onReady(ln.Addr().String())
+		onReady(ln.Addr().(*net.TCPAddr).Port)
 	}
 	err = srv.Serve(ln)
 	if errors.Is(err, http.ErrServerClosed) {
@@ -122,8 +122,8 @@ func (s *Server) handleRead(w http.ResponseWriter, r *http.Request) {
 
 func writeErr(w http.ResponseWriter, err error) {
 	var se statusError
-	if errors.As(err, &se) {
-		http.Error(w, se.Err.Error(), se.StatusCode)
+	if err, ok := errors.AsType[statusError](err); ok {
+		http.Error(w, err.Err.Error(), se.StatusCode)
 		return
 	}
 	http.Error(w, err.Error(), http.StatusInternalServerError)

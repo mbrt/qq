@@ -46,8 +46,8 @@ func runServe(_ *cobra.Command, _ []string) {
 	s, err := serve.NewServer(idx, uiPath, cfg.Directories)
 	cobra.CheckErr(err)
 
-	onReady := func(addr string) {
-		url := "http://localhost" + addr
+	onReady := func(port int) {
+		url := fmt.Sprintf("http://localhost:%d", port)
 		slog.Info(fmt.Sprintf("Starting server on %s", url))
 		if !serveNoBrowser {
 			if err := openBrowser(url); err != nil {

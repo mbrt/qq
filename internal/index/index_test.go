@@ -98,6 +98,36 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, "Concurrency in Go", res.Hits[0].Title)
 }
 
+func TestSearch_TitleBoost(t *testing.T) {
+	idx := openTestIndex(t)
+	docs := []document.Document{
+		{ID: "a.md", Title: "Kubernetes Guide", Contents: "containers and orchestration", Updated: time.Now()},
+		{ID: "b.md", Title: "Container Basics", Contents: "kubernetes deployment patterns", Updated: time.Now()},
+	}
+	_, err := idx.Reconcile(context.Background(), docs)
+	require.NoError(t, err)
+
+	res, err := idx.Search("kubernetes")
+	require.NoError(t, err)
+	require.Equal(t, 2, res.Total)
+	assert.Equal(t, "Kubernetes Guide", res.Hits[0].Title, "title match should rank higher")
+}
+
+func TestSearch_TagBoost(t *testing.T) {
+	idx := openTestIndex(t)
+	docs := []document.Document{
+		{ID: "a.md", Title: "Article One", Contents: "general content", Tags: []string{"kubernetes"}, Updated: time.Now()},
+		{ID: "b.md", Title: "Article Two", Contents: "kubernetes deployment patterns", Updated: time.Now()},
+	}
+	_, err := idx.Reconcile(context.Background(), docs)
+	require.NoError(t, err)
+
+	res, err := idx.Search("kubernetes")
+	require.NoError(t, err)
+	require.Equal(t, 2, res.Total)
+	assert.Equal(t, "Article One", res.Hits[0].Title, "tag match should rank higher than body match")
+}
+
 func TestSearch_TagAlias(t *testing.T) {
 	idx := openTestIndex(t)
 	docs := []document.Document{

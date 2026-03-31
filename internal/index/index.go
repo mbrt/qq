@@ -13,6 +13,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/mapping"
+	bleve_query "github.com/blevesearch/bleve/v2/search/query"
 	index_api "github.com/blevesearch/bleve_index_api"
 
 	"github.com/mbrt/qq/internal/document"
@@ -133,8 +134,9 @@ func (idx *Index) Reconcile(_ context.Context, docs []document.Document) (Reconc
 }
 
 // Search executes a query string search and returns results.
+// Matches on title and tags are boosted above matches on contents.
 func (idx *Index) Search(query string) (SearchResult, error) {
-	q := bleve.NewQueryStringQuery(normalizeQuery(query))
+	q := buildSearchQuery(normalizeQuery(query))
 	req := bleve.NewSearchRequest(q)
 	req.Size = searchMaxResults
 	req.Highlight = bleve.NewHighlightWithStyle("html")
@@ -383,6 +385,22 @@ func timeField(fs map[string]any, name string) time.Time {
 	}
 	slog.Warn("Failed to parse time field", "field", name, "value", s)
 	return time.Time{}
+}
+
+// buildSearchQuery creates a compound query that searches all fields via
+// QueryStringQuery but also boosts matches on title and tags.
+func buildSearchQuery(q string) *bleve_query.DisjunctionQuery {
+	qsq := bleve.NewQueryStringQuery(q)
+
+	titleQ := bleve.NewMatchQuery(q)
+	titleQ.SetField("title")
+	titleQ.SetBoost(4.0)
+
+	tagsQ := bleve.NewMatchQuery(q)
+	tagsQ.SetField("tags")
+	tagsQ.SetBoost(2.0)
+
+	return bleve.NewDisjunctionQuery(qsq, titleQ, tagsQ)
 }
 
 // normalizeQuery rewrites field aliases so that e.g. "tag:" is treated
