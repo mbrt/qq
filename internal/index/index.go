@@ -134,7 +134,7 @@ func (idx *Index) Reconcile(_ context.Context, docs []document.Document) (Reconc
 
 // Search executes a query string search and returns results.
 func (idx *Index) Search(query string) (SearchResult, error) {
-	q := bleve.NewQueryStringQuery(query)
+	q := bleve.NewQueryStringQuery(normalizeQuery(query))
 	req := bleve.NewSearchRequest(q)
 	req.Size = searchMaxResults
 	req.Highlight = bleve.NewHighlightWithStyle("html")
@@ -384,6 +384,18 @@ func timeField(fs map[string]any, name string) time.Time {
 	slog.Warn("Failed to parse time field", "field", name, "value", s)
 	return time.Time{}
 }
+
+// normalizeQuery rewrites field aliases so that e.g. "tag:" is treated
+// the same as "tags:".
+func normalizeQuery(q string) string {
+	return fieldAliasReplacer.Replace(q)
+}
+
+var fieldAliasReplacer = strings.NewReplacer(
+	"tag:", "tags:",
+	"Tag:", "tags:",
+	"TAG:", "tags:",
+)
 
 // StripHTMLTags removes HTML tags from a string (for CLI display of fragments).
 func StripHTMLTags(s string) string {

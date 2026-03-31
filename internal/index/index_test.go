@@ -98,6 +98,51 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, "Concurrency in Go", res.Hits[0].Title)
 }
 
+func TestSearch_TagAlias(t *testing.T) {
+	idx := openTestIndex(t)
+	docs := []document.Document{
+		{ID: "a.md", Title: "Go Article", Contents: "goroutines", Tags: []string{"work"}, Updated: time.Now()},
+		{ID: "b.md", Title: "Python Article", Contents: "lists", Tags: []string{"personal"}, Updated: time.Now()},
+	}
+	_, err := idx.Reconcile(context.Background(), docs)
+	require.NoError(t, err)
+
+	tests := []struct {
+		query string
+		want  string
+	}{
+		{"tags:work", "Go Article"},
+		{"tag:work", "Go Article"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.query, func(t *testing.T) {
+			res, err := idx.Search(tt.query)
+			require.NoError(t, err)
+			require.Equal(t, 1, res.Total)
+			assert.Equal(t, tt.want, res.Hits[0].Title)
+		})
+	}
+}
+
+func TestNormalizeQuery(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"tag:work", "tags:work"},
+		{"tags:work", "tags:work"},
+		{"Tag:work", "tags:work"},
+		{"TAG:work", "tags:work"},
+		{"tag:work goroutines", "tags:work goroutines"},
+		{"goroutines", "goroutines"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.want, normalizeQuery(tt.input))
+		})
+	}
+}
+
 func TestRead(t *testing.T) {
 	idx := openTestIndex(t)
 	docs := []document.Document{
