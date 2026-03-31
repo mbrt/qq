@@ -1,10 +1,18 @@
-<nav class="navbar mb-4">
+<header class="p-3 mb-3 border-bottom">
   <div class="container">
-    <a class="navbar-brand" href="/">qq</a>
-    <form class="d-flex flex-grow-1 ms-3" role="search" action="/search" method="get">
-      <input class="form-control me-2" type="search" placeholder="Search..." aria-label="Search"
-        name="q" value="{{.Query}}" autocomplete="off" autofocus>
-      <button class="btn btn-outline-primary" type="submit">Search</button>
-    </form>
+    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+      <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-decoration-none">
+        <img class="bi me-4" src="/assets/img/logo.svg" alt="qq logo" width="38" height="38">
+      </a>
+
+      <form class="col-12 col-md-8 mb-3 mb-md-0 me-md-3" role="search" action="/search" method="get">
+        <div class="input-group">
+          <input id="search-form" type="search" class="form-control" placeholder="Search..." aria-label="Search"
+            autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="none" name="q" value="{{.Query}}">
+          <span class="input-group-text d-none d-md-block"><small>Ctrl + /</small></span>
+        </div>
+        <button type="submit" class="d-none">Search</button>
+      </form>
+    </div>
   </div>
-</nav>
+</header>

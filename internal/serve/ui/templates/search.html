@@ -9,12 +9,14 @@
   {{end}}
 </head>
 <body>
+
   <main>
     <div class="container">
+
       {{template "header.html" .}}
 
       <div>
-        <div class="mb-2 ms-1 text-muted">{{.Total}} results ({{.Took | displayDuration}})</div>
+        <div class="mb-2 ms-3 text-muted">{{.Total}} results ({{.Took | displayDuration}})</div>
         {{range .Hits}}
         <div class="card mb-2">
           <div class="card-body">
@@ -30,10 +32,20 @@
             {{end}}
           </ul>
           {{end}}
-          <div class="card-footer text-muted small">
-            {{if .Source}}<span class="badge bg-secondary me-1">{{.Source}}</span>{{end}}
-            {{range .Tags}}<span class="badge bg-info me-1">{{.}}</span>{{end}}
-            {{if not .Updated.IsZero}}<span>{{.Updated | toTimeAgo}}</span>{{end}}
+          <div class="card-footer">
+            <div class="row row-cols-auto">
+              <div class="col">
+                {{if .Source}}{{template "source.html" .Source}}{{end}}
+                {{range .Tags}}
+                  {{template "tag.html" .}}
+                {{end}}
+              </div>
+              {{if not .Updated.IsZero}}
+              <div class="col border-start">
+                <small>{{.Updated | toTimeAgo}}</small>
+              </div>
+              {{end}}
+            </div>
           </div>
         </div>
         {{end}}
@@ -42,9 +54,12 @@
       {{if .Total}}
         {{template "footer.html"}}
       {{end}}
+
     </div>
   </main>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  {{template "scripts.html"}}
+  {{template "header_scripts.html"}}
+
 </body>
 </html>

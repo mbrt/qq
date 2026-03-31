@@ -1,3 +1,9 @@
+@media (min-width: 1000px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
 .article-content {
   max-width: 48rem;
   margin: 0 auto;
