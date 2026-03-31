@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -22,8 +23,9 @@ import (
 )
 
 var (
-	cfgFile   string
-	servePort int
+	cfgFile      string
+	servePort    int
+	searchFormat string
 
 	rootCmd = &cobra.Command{
 		Use:   "qq",
@@ -44,6 +46,7 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default ~/.config/qq/config.yaml)")
+	searchCmd.Flags().StringVarP(&searchFormat, "format", "f", "pretty", "output format: pretty, path, json")
 	serveCmd.Flags().IntVar(&servePort, "port", 8080, "port to listen on")
 	rootCmd.AddCommand(searchCmd, serveCmd)
 }
@@ -72,7 +75,16 @@ func runSearch(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("searching: %w", err)
 	}
 
-	printSearchResults(os.Stdout, results)
+	switch searchFormat {
+	case "pretty":
+		printSearchPretty(os.Stdout, results)
+	case "path":
+		printSearchPaths(os.Stdout, results)
+	case "json":
+		return printSearchJSON(os.Stdout, results)
+	default:
+		return fmt.Errorf("unknown format %q (valid: pretty, path, json)", searchFormat)
+	}
 	return nil
 }
 
@@ -96,7 +108,7 @@ func runServe(_ *cobra.Command, _ []string) error {
 	return s.Serve(ctx, servePort)
 }
 
-func printSearchResults(w io.Writer, results index.SearchResult) {
+func printSearchPretty(w io.Writer, results index.SearchResult) {
 	bold := color.New(color.Bold)
 	cyan := color.New(color.FgCyan)
 	faint := color.New(color.Faint)
@@ -131,6 +143,62 @@ func printSearchResults(w io.Writer, results index.SearchResult) {
 			}
 		}
 	}
+}
+
+func printSearchPaths(w io.Writer, results index.SearchResult) {
+	for _, hit := range results.Hits {
+		if hit.Path != "" {
+			fmt.Fprintln(w, hit.Path)
+		}
+	}
+}
+
+type jsonOutput struct {
+	Total int             `json:"total"`
+	Took  string          `json:"took"`
+	Hits  []jsonOutputHit `json:"hits"`
+}
+
+type jsonOutputHit struct {
+	ID      string   `json:"id"`
+	Score   float64  `json:"score"`
+	Title   string   `json:"title"`
+	Path    string   `json:"path,omitempty"`
+	Source  string   `json:"source,omitempty"`
+	Author  string   `json:"author,omitempty"`
+	URL     string   `json:"url,omitempty"`
+	Tags    []string `json:"tags,omitempty"`
+	Updated string   `json:"updated,omitempty"`
+	Excerpt string   `json:"excerpt,omitempty"`
+}
+
+func printSearchJSON(w io.Writer, results index.SearchResult) error {
+	out := jsonOutput{
+		Total: results.Total,
+		Took:  results.Took.String(),
+		Hits:  make([]jsonOutputHit, len(results.Hits)),
+	}
+	for i, hit := range results.Hits {
+		var updated string
+		if !hit.Updated.IsZero() {
+			updated = hit.Updated.Format(time.RFC3339)
+		}
+		out.Hits[i] = jsonOutputHit{
+			ID:      hit.ID,
+			Score:   hit.Score,
+			Title:   hit.Title,
+			Path:    hit.Path,
+			Source:  hit.Source,
+			Author:  hit.Author,
+			URL:     hit.URL,
+			Tags:    hit.Tags,
+			Updated: updated,
+			Excerpt: hit.Excerpt,
+		}
+	}
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(out)
 }
 
 func formatPath(path string) string {
