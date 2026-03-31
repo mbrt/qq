@@ -51,9 +51,14 @@ type Server struct {
 }
 
 // Serve starts the HTTP server on the given port, blocking until ctx is cancelled.
-func (s *Server) Serve(ctx context.Context, port int) error {
+// If onReady is non-nil, it is called with the listener address once the server
+// is accepting connections.
+func (s *Server) Serve(ctx context.Context, port int, onReady func(addr string)) error {
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return fmt.Errorf("listening on port %d: %w", port, err)
+	}
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
 		Handler: s.mux,
 		BaseContext: func(_ net.Listener) context.Context {
 			return ctx
@@ -63,7 +68,10 @@ func (s *Server) Serve(ctx context.Context, port int) error {
 		<-ctx.Done()
 		srv.Shutdown(context.Background())
 	}()
-	err := srv.ListenAndServe()
+	if onReady != nil {
+		onReady(ln.Addr().String())
+	}
+	err = srv.Serve(ln)
 	if errors.Is(err, http.ErrServerClosed) {
 		return nil
 	}
