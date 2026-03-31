@@ -60,10 +60,10 @@ func Parse(id, filename string, data []byte, mtime time.Time) Document {
 	doc.Tags = fm.Tags
 
 	switch {
-	case fm.Saved != nil:
-		doc.Updated = *fm.Saved
 	case fm.Date != nil:
 		doc.Updated = *fm.Date
+	case fm.Saved != nil:
+		doc.Updated = *fm.Saved
 	case fm.Updated != "":
 		if t, err := time.Parse("2006-01-02", fm.Updated); err == nil {
 			doc.Updated = t

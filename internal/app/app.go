@@ -29,6 +29,7 @@ func LoadAndIndex(ctx context.Context, cfgFile string) (*index.Index, config.Con
 	if err != nil {
 		return nil, cfg, fmt.Errorf("opening index: %w", err)
 	}
+	slog.Info("Re-indexing documents")
 	stats, err := idx.Reconcile(ctx, docs)
 	if err != nil {
 		idx.Close()

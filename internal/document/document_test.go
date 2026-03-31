@@ -30,7 +30,7 @@ The Silicon Valley narrative centers on entrepreneurial protagonists.
 	assert.Equal(t, "https://lethain.com/forty-year-career/", doc.URL)
 	assert.Equal(t, "instapaper", doc.Source)
 	assert.Equal(t, []string{"manage"}, doc.Tags)
-	assert.Equal(t, time.Date(2026, 1, 11, 7, 47, 12, 0, time.UTC), doc.Updated)
+	assert.Equal(t, time.Date(2019, 10, 8, 6, 0, 0, 0, time.FixedZone("", -7*3600)), doc.Updated)
 	assert.Contains(t, doc.Contents, "Silicon Valley")
 	assert.NotEmpty(t, doc.Excerpt)
 }
@@ -93,14 +93,14 @@ func TestParse_UpdatedPriority(t *testing.T) {
 		wantYear int
 	}{
 		{
-			name:     "saved wins over date and updated",
+			name:     "date wins over saved and updated",
 			data:     "---\nsaved: 2026-01-01T00:00:00Z\ndate: 2020-01-01T00:00:00Z\nupdated: '2015-01-01'\n---\n",
-			wantYear: 2026,
+			wantYear: 2020,
 		},
 		{
-			name:     "date wins when no saved",
-			data:     "---\ndate: 2020-06-15T00:00:00Z\nupdated: '2015-01-01'\n---\n",
-			wantYear: 2020,
+			name:     "saved wins when no date",
+			data:     "---\nsaved: 2026-06-15T00:00:00Z\nupdated: '2015-01-01'\n---\n",
+			wantYear: 2026,
 		},
 		{
 			name:     "updated wins when no saved or date",
