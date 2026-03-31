@@ -30,14 +30,15 @@ func (a *apiHandler) Read(_ context.Context, id string) (index.ReadResult, error
 		return index.ReadResult{}, statusError{http.StatusNotFound, fmt.Errorf("document %q: %w", id, err)}
 	}
 
-	// If we have the raw markdown contents, try to read the file from disk
-	// for the freshest version.
-	if content := a.readFromDisk(id); content != "" {
+	content, dirIdx := a.readFromDisk(id)
+	if content != "" {
 		result.Contents = content
 	}
 
 	if result.Contents != "" {
-		html, err := markdown.ToHTML(result.Contents)
+		filesPrefix := fmt.Sprintf("/files/%d", dirIdx)
+		baseDir := filepath.Dir(id)
+		html, err := markdown.ToHTML(result.Contents, filesPrefix, baseDir)
 		if err != nil {
 			return result, nil
 		}
@@ -47,17 +48,17 @@ func (a *apiHandler) Read(_ context.Context, id string) (index.ReadResult, error
 }
 
 // readFromDisk tries to find and read the original file for the given document ID.
-func (a *apiHandler) readFromDisk(id string) string {
-	for _, dir := range a.dirs {
+// It returns the content and the index of the directory it was found in.
+func (a *apiHandler) readFromDisk(id string) (string, int) {
+	for i, dir := range a.dirs {
 		path := filepath.Join(dir.Path, id)
 		data, err := os.ReadFile(path)
 		if err != nil {
 			continue
 		}
-		// Strip frontmatter.
-		return stripFrontmatter(string(data))
+		return stripFrontmatter(string(data)), i
 	}
-	return ""
+	return "", 0
 }
 
 func stripFrontmatter(s string) string {

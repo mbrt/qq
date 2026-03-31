@@ -44,6 +44,11 @@ func NewServer(idx *index.Index, dirs []config.Directory) (*Server, error) {
 	mux.HandleFunc("GET /{$}", s.handleHome)
 	mux.HandleFunc("GET /search", s.handleSearch)
 	mux.HandleFunc("GET /read/{id...}", s.handleRead)
+	for i, dir := range dirs {
+		prefix := fmt.Sprintf("/files/%d/", i)
+		fsys := justFilesFS{http.Dir(dir.Path)}
+		mux.Handle("GET "+prefix, http.StripPrefix(prefix, http.FileServer(fsys)))
+	}
 	mux.Handle("GET /assets/", http.StripPrefix("/assets", staticHandler))
 
 	return s, nil
@@ -127,9 +132,8 @@ func (s *Server) handleRead(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeErr(w http.ResponseWriter, err error) {
-	var se statusError
-	if err, ok := errors.AsType[statusError](err); ok {
-		http.Error(w, err.Err.Error(), se.StatusCode)
+	if se, ok := errors.AsType[statusError](err); ok {
+		http.Error(w, se.Err.Error(), se.StatusCode)
 		return
 	}
 	http.Error(w, err.Error(), http.StatusInternalServerError)
