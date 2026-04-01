@@ -7,7 +7,7 @@ frontend for full-text searching and reading markdown files.
 
 - Full-text search over local markdown files using [Bleve](https://blevesearch.com/)
 - Incremental indexing: detects added, removed, and changed files on restart
-- Supports both kb-style (markdowner) and Obsidian frontmatter formats
+- Supports both [markdowner](https://github.com/mbrt/markdowner) and Obsidian frontmatter formats
 - Web UI with search and reading experience
 - CLI search for quick terminal lookups
 

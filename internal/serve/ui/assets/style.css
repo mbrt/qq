@@ -17,6 +17,11 @@ mark {
   border-radius: 2px;
 }
 
+[data-bs-theme="dark"] mark {
+  background-color: #664d03;
+  color: #fff3cd;
+}
+
 .card-title {
   font-size: 1.1rem;
 }
