@@ -389,14 +389,21 @@ func timeField(fs map[string]any, name string) time.Time {
 
 // buildSearchQuery creates a compound query that searches all fields via
 // QueryStringQuery but also boosts matches on title and tags.
-func buildSearchQuery(q string) *bleve_query.DisjunctionQuery {
+func buildSearchQuery(q string) bleve_query.Query {
 	qsq := bleve.NewQueryStringQuery(q)
 
-	titleQ := bleve.NewMatchQuery(q)
+	// Only boost on plain (non-field-scoped) terms to avoid false positives
+	// from field-scoped queries like updated:>"2026-03-25".
+	plain := plainTerms(q)
+	if plain == "" {
+		return qsq
+	}
+
+	titleQ := bleve.NewMatchQuery(plain)
 	titleQ.SetField("title")
 	titleQ.SetBoost(4.0)
 
-	tagsQ := bleve.NewMatchQuery(q)
+	tagsQ := bleve.NewMatchQuery(plain)
 	tagsQ.SetField("tags")
 	tagsQ.SetBoost(2.0)
 
@@ -414,6 +421,59 @@ var fieldAliasReplacer = strings.NewReplacer(
 	"Tag:", "tags:",
 	"TAG:", "tags:",
 )
+
+// plainTerms extracts unqualified search terms from a query string, stripping
+// field-scoped terms like "updated:>\"2026-03-25\"" or "tags:work". This is
+// used to build title/tag boost queries that should only match plain keywords.
+func plainTerms(q string) string {
+	var plain []string
+	for _, tok := range tokenizeQuery(q) {
+		if !strings.Contains(tok, ":") {
+			plain = append(plain, tok)
+		}
+	}
+	return strings.Join(plain, " ")
+}
+
+// tokenizeQuery splits a query string into tokens, respecting quoted strings.
+// Each token is a whitespace-delimited word, except that quoted substrings
+// (including surrounding quotes) are kept together with the preceding text.
+func tokenizeQuery(q string) []string {
+	var tokens []string
+	var cur strings.Builder
+	inQuote := false
+	escaped := false
+
+	for _, r := range q {
+		if escaped {
+			cur.WriteRune(r)
+			escaped = false
+			continue
+		}
+		if r == '\\' {
+			cur.WriteRune(r)
+			escaped = true
+			continue
+		}
+		if r == '"' {
+			cur.WriteRune(r)
+			inQuote = !inQuote
+			continue
+		}
+		if r == ' ' && !inQuote {
+			if cur.Len() > 0 {
+				tokens = append(tokens, cur.String())
+				cur.Reset()
+			}
+			continue
+		}
+		cur.WriteRune(r)
+	}
+	if cur.Len() > 0 {
+		tokens = append(tokens, cur.String())
+	}
+	return tokens
+}
 
 // StripHTMLTags removes HTML tags from a string (for CLI display of fragments).
 func StripHTMLTags(s string) string {

@@ -173,6 +173,57 @@ func TestNormalizeQuery(t *testing.T) {
 	}
 }
 
+func TestPlainTerms(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"goroutines", "goroutines"},
+		{"goroutines channels", "goroutines channels"},
+		{`updated:>"2026-03-25"`, ""},
+		{`tags:work goroutines`, "goroutines"},
+		{`+updated:>="2026-03-01" +updated:<="2026-03-31"`, ""},
+		{`goroutines updated:>"2026-03-25"`, "goroutines"},
+		{`source:instapaper kubernetes`, "kubernetes"},
+		{`+tags:work +source:instapaper`, ""},
+		{`"light beer"`, `"light beer"`},
+		{`title:"my doc" search`, "search"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.want, plainTerms(tt.input))
+		})
+	}
+}
+
+func TestSearch_DateRangeNoFalsePositives(t *testing.T) {
+	idx := openTestIndex(t)
+	now := time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC)
+	docs := []document.Document{
+		{
+			ID:       "a.md",
+			Title:    "Linux disk encryption (2021-03) pc",
+			Contents: "ext4 vs btrfs",
+			Tags:     []string{"pc"},
+			Updated:  time.Date(2026, 3, 12, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			ID:       "b.md",
+			Title:    "Recent article",
+			Contents: "something new",
+			Tags:     []string{"news"},
+			Updated:  now,
+		},
+	}
+	_, err := idx.Reconcile(context.Background(), docs)
+	require.NoError(t, err)
+
+	res, err := idx.Search(`updated:>"2026-03-25"`)
+	require.NoError(t, err)
+	require.Equal(t, 1, res.Total)
+	assert.Equal(t, "Recent article", res.Hits[0].Title)
+}
+
 func TestRead(t *testing.T) {
 	idx := openTestIndex(t)
 	docs := []document.Document{
