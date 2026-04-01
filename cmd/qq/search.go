@@ -74,7 +74,7 @@ func printSearchPretty(w io.Writer, results index.SearchResult) {
 	faint := color.New(color.Faint)
 
 	fmt.Fprintf(w, "%d results (%s)\n", results.Total, results.Took)
-	for _, hit := range results.Hits {
+	for _, hit := range slices.Backward(results.Hits) {
 		fmt.Fprintln(w)
 		bold.Fprintf(w, "- %s\n", hit.Title)
 
