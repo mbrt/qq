@@ -394,7 +394,7 @@ func buildSearchQuery(q string) bleve_query.Query {
 
 	// Only boost on plain (non-field-scoped) terms to avoid false positives
 	// from field-scoped queries like updated:>"2026-03-25".
-	plain := plainTerms(q)
+	plain := unfieldedTerms(qsq)
 	if plain == "" {
 		return qsq
 	}
@@ -422,57 +422,46 @@ var fieldAliasReplacer = strings.NewReplacer(
 	"TAG:", "tags:",
 )
 
-// plainTerms extracts unqualified search terms from a query string, stripping
-// field-scoped terms like "updated:>\"2026-03-25\"" or "tags:work". This is
-// used to build title/tag boost queries that should only match plain keywords.
-func plainTerms(q string) string {
-	var plain []string
-	for _, tok := range tokenizeQuery(q) {
-		if !strings.Contains(tok, ":") {
-			plain = append(plain, tok)
-		}
+// unfieldedTerms parses the query string and returns only the terms that
+// are not scoped to a specific field. It uses Bleve's own query parser to
+// walk the parsed tree, collecting MatchQuery and MatchPhraseQuery nodes
+// that target the default field (i.e. have no explicit field set).
+func unfieldedTerms(qsq *bleve_query.QueryStringQuery) string {
+	parsed, err := qsq.Parse()
+	if err != nil {
+		return qsq.Query
 	}
-	return strings.Join(plain, " ")
+	var terms []string
+	collectUnfielded(parsed, &terms)
+	return strings.Join(terms, " ")
 }
 
-// tokenizeQuery splits a query string into tokens, respecting quoted strings.
-// Each token is a whitespace-delimited word, except that quoted substrings
-// (including surrounding quotes) are kept together with the preceding text.
-func tokenizeQuery(q string) []string {
-	var tokens []string
-	var cur strings.Builder
-	inQuote := false
-	escaped := false
-
-	for _, r := range q {
-		if escaped {
-			cur.WriteRune(r)
-			escaped = false
-			continue
-		}
-		if r == '\\' {
-			cur.WriteRune(r)
-			escaped = true
-			continue
-		}
-		if r == '"' {
-			cur.WriteRune(r)
-			inQuote = !inQuote
-			continue
-		}
-		if r == ' ' && !inQuote {
-			if cur.Len() > 0 {
-				tokens = append(tokens, cur.String())
-				cur.Reset()
+func collectUnfielded(q bleve_query.Query, terms *[]string) {
+	switch v := q.(type) {
+	case *bleve_query.BooleanQuery:
+		for _, sub := range []bleve_query.Query{v.Must, v.Should, v.MustNot} {
+			if sub != nil {
+				collectUnfielded(sub, terms)
 			}
-			continue
 		}
-		cur.WriteRune(r)
+	case *bleve_query.ConjunctionQuery:
+		for _, sub := range v.Conjuncts {
+			collectUnfielded(sub, terms)
+		}
+	case *bleve_query.DisjunctionQuery:
+		for _, sub := range v.Disjuncts {
+			collectUnfielded(sub, terms)
+		}
+	case bleve_query.FieldableQuery:
+		if v.Field() == "" {
+			switch fq := v.(type) {
+			case *bleve_query.MatchQuery:
+				*terms = append(*terms, fq.Match)
+			case *bleve_query.MatchPhraseQuery:
+				*terms = append(*terms, fq.MatchPhrase)
+			}
+		}
 	}
-	if cur.Len() > 0 {
-		tokens = append(tokens, cur.String())
-	}
-	return tokens
 }
 
 // StripHTMLTags removes HTML tags from a string (for CLI display of fragments).

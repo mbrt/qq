@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -173,7 +174,7 @@ func TestNormalizeQuery(t *testing.T) {
 	}
 }
 
-func TestPlainTerms(t *testing.T) {
+func TestUnfieldedTerms(t *testing.T) {
 	tests := []struct {
 		input string
 		want  string
@@ -186,12 +187,13 @@ func TestPlainTerms(t *testing.T) {
 		{`goroutines updated:>"2026-03-25"`, "goroutines"},
 		{`source:instapaper kubernetes`, "kubernetes"},
 		{`+tags:work +source:instapaper`, ""},
-		{`"light beer"`, `"light beer"`},
+		{`"light beer"`, "light beer"},
 		{`title:"my doc" search`, "search"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			assert.Equal(t, tt.want, plainTerms(tt.input))
+			qsq := bleve.NewQueryStringQuery(tt.input)
+			assert.Equal(t, tt.want, unfieldedTerms(qsq))
 		})
 	}
 }
