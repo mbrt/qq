@@ -249,10 +249,10 @@ qq/
    index.Search()     HTTP server
           │                 │
           ▼                 ├──▶ /search ──▶ index.Search()
-     print to stdout   │
-                        ├──▶ /read/{id} ──▶ index + markdown.ToHTML()
-                        │
-                        └──▶ / ──▶ home page
+     print to stdout        │
+                            ├──▶ /read/{id} ──▶ index + markdown.ToHTML()
+                            │
+                            └──▶ / ──▶ home page
 ```
 
 ## Dependencies

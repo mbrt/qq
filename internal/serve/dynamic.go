@@ -33,6 +33,9 @@ var tmplFuncs = template.FuncMap{
 	"safeHTML": func(s string) template.HTML {
 		return template.HTML(s)
 	},
+	"oneWeekAgo": func() string {
+		return time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	},
 }
 
 func newDynamicHandler(api *apiHandler, tfs fs.FS) (dynamicHandler, error) {

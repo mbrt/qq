@@ -1,37 +1,169 @@
 <!doctype html>
 <html lang="en" data-bs-theme="auto">
-<head>
-  {{template "head.html"}}
-  <title>qq - Search</title>
-</head>
-<body>
+    <head>
+        {{template "head.html"}}
+        <title>qq - Search</title>
+    </head>
+    <body>
+        <main>
+            <h1 class="visually-hidden">qq - Search your markdown files</h1>
 
-  <main>
-    <h1 class="visually-hidden">qq - Search your markdown files</h1>
+            <div class="px-4 py-5 my-5 text-center">
+                <img
+                    class="d-block mx-auto mb-4"
+                    src="/assets/img/logo.svg"
+                    alt="qq logo"
+                    width="72"
+                    height="57"
+                />
+                <h1 class="display-5 fw-bold">qq</h1>
+                <div class="home-search">
+                    <p class="lead mb-4">Search your markdown files</p>
 
-    <div class="px-4 py-5 my-5 text-center">
-      <img class="d-block mx-auto mb-4" src="/assets/img/logo.svg" alt="qq logo" width="72" height="57">
-      <h1 class="display-5 fw-bold">qq</h1>
-      <div class="col-lg-6 mx-auto">
-        <p class="lead mb-4">Search your markdown files</p>
+                    <div>
+                        <form role="search" action="/search" method="get">
+                            <div class="input-group input-group-lg">
+                                <input
+                                    id="search-form"
+                                    type="search"
+                                    class="form-control"
+                                    placeholder="Search..."
+                                    aria-label="Search"
+                                    name="q"
+                                    autocomplete="off"
+                                    autocorrect="off"
+                                    spellcheck="false"
+                                    autocapitalize="none"
+                                    autofocus
+                                />
+                                <span class="input-group-text d-none d-lg-block"
+                                    ><small>Ctrl + /</small></span
+                                >
+                            </div>
+                            <button type="submit" class="d-none">Search</button>
+                        </form>
+                    </div>
 
-        <div class="justify-content-sm-center">
-          <form role="search" action="/search" method="get">
-            <div class="input-group input-group-lg">
-              <input id="search-form" type="search" class="form-control" placeholder="Search..."
-                aria-label="Search" name="q" autocomplete="off" autocorrect="off"
-                spellcheck="false" autocapitalize="none" autofocus>
-              <span class="input-group-text d-none d-lg-block"><small>Ctrl + /</small></span>
+                    <div class="home-help mt-4 text-start">
+                        <h6 class="text-center text-muted mb-3">
+                            How to search
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="text-muted small mb-2 fw-semibold">
+                                    Search basics
+                                </p>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=deploy+containers"
+                                        class="search-example"
+                                        >deploy containers</a
+                                    >
+                                    <span class="text-muted small"
+                                        >multiple terms</span
+                                    >
+                                </div>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=%2Bgo+%2Bscheduler"
+                                        class="search-example"
+                                        >+go +scheduler</a
+                                    >
+                                    <span class="text-muted small"
+                                        >required terms</span
+                                    >
+                                </div>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=%22error+handling%22"
+                                        class="search-example"
+                                        >"error handling"</a
+                                    >
+                                    <span class="text-muted small"
+                                        >exact phrase</span
+                                    >
+                                </div>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=title%3Asetup"
+                                        class="search-example"
+                                        >title:setup</a
+                                    >
+                                    <span class="text-muted small"
+                                        >search in titles</span
+                                    >
+                                </div>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=author%3Aalice"
+                                        class="search-example"
+                                        >author:alice</a
+                                    >
+                                    <span class="text-muted small"
+                                        >search by author</span
+                                    >
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="text-muted small mb-2 fw-semibold">
+                                    Filter by metadata
+                                </p>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=tags%3Apython"
+                                        class="search-example"
+                                        >tags:python</a
+                                    >
+                                    <span class="text-muted small"
+                                        >filter by tag</span
+                                    >
+                                </div>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=source%3Awiki"
+                                        class="search-example"
+                                        >source:wiki</a
+                                    >
+                                    <span class="text-muted small"
+                                        >filter by source</span
+                                    >
+                                </div>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=tags%3Ago+title%3Atest"
+                                        class="search-example"
+                                        >tags:go title:test</a
+                                    >
+                                    <span class="text-muted small"
+                                        >combine filters</span
+                                    >
+                                </div>
+                                <div class="mb-1">
+                                    <a
+                                        href="/search?q=updated%3A%3E%22{{oneWeekAgo}}%22"
+                                        class="search-example"
+                                        >updated:&gt;"{{oneWeekAgo}}"</a
+                                    >
+                                    <span class="text-muted small"
+                                        >updated last week</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a
+                                href="https://blevesearch.com/docs/Query-String-Query/"
+                                target="_blank"
+                                rel="noopener"
+                                class="text-muted small"
+                                >Complete query reference &#x2197;</a
+                            >
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="d-none">Search</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </main>
+        </main>
 
-  {{template "scripts.html"}}
-  {{template "header_scripts.html"}}
-
-</body>
+        {{template "scripts.html"}} {{template "header_scripts.html"}}
+    </body>
 </html>

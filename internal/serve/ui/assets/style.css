@@ -41,3 +41,43 @@ mark {
 .copy-path-btn:focus {
   opacity: 1;
 }
+
+.home-search {
+  max-width: 960px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-help {
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search-example {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 0.8rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 1px 6px;
+  text-decoration: none;
+  color: inherit;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.search-example:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+}
+
+[data-bs-theme="dark"] .search-example {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-bs-theme="dark"] .search-example:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
