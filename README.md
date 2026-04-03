@@ -9,7 +9,9 @@ frontend for full-text searching and reading markdown files.
 - Incremental indexing: detects added, removed, and changed files on restart
 - Supports both [markdowner](https://github.com/mbrt/markdowner) and Obsidian frontmatter formats
 - Web UI with search and reading experience
-- CLI search for quick terminal lookups
+- CLI search for quick terminal lookups (both human-readable and structured JSON output)
+
+![docs/serve-screenshot.png](docs/serve-screenshot.png)
 
 ## Install
 
