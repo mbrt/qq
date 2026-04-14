@@ -166,6 +166,8 @@ func TestNormalizeQuery(t *testing.T) {
 		{"TAG:work", "tags:work"},
 		{"tag:work goroutines", "tags:work goroutines"},
 		{"goroutines", "goroutines"},
+		{"url:x.com", "url_host:x.com"},
+		{"URL:example.com", "url_host:example.com"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
@@ -194,6 +196,33 @@ func TestUnfieldedTerms(t *testing.T) {
 		t.Run(tt.input, func(t *testing.T) {
 			qsq := bleve.NewQueryStringQuery(tt.input)
 			assert.Equal(t, tt.want, unfieldedTerms(qsq))
+		})
+	}
+}
+
+func TestSearch_URLHost(t *testing.T) {
+	idx := openTestIndex(t)
+	docs := []document.Document{
+		{ID: "a.md", Title: "Tweet", Contents: "interesting thread", URL: "https://x.com/i/status/1234", Updated: time.Now()},
+		{ID: "b.md", Title: "Blog Post", Contents: "interesting article", URL: "https://example.com/post/42", Updated: time.Now()},
+		{ID: "c.md", Title: "No URL", Contents: "interesting stuff", Updated: time.Now()},
+	}
+	_, err := idx.Reconcile(context.Background(), docs)
+	require.NoError(t, err)
+
+	tests := []struct {
+		query string
+		want  string
+	}{
+		{"url:x.com", "Tweet"},
+		{"url:example.com", "Blog Post"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.query, func(t *testing.T) {
+			res, err := idx.Search(tt.query)
+			require.NoError(t, err)
+			require.Equal(t, 1, res.Total)
+			assert.Equal(t, tt.want, res.Hits[0].Title)
 		})
 	}
 }
@@ -257,6 +286,24 @@ func TestRead_NotFound(t *testing.T) {
 	idx := openTestIndex(t)
 	_, err := idx.Read("nonexistent.md")
 	assert.Error(t, err)
+}
+
+func TestExtractHost(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"https://x.com/i/status/1234", "x.com"},
+		{"https://example.com/post/42", "example.com"},
+		{"http://localhost:8080/path", "localhost"},
+		{"", ""},
+		{"not-a-url", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.want, extractHost(tt.input))
+		})
+	}
 }
 
 func TestStripHTMLTags(t *testing.T) {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -279,6 +280,7 @@ type indexDoc struct {
 	Path     string    `json:"path,omitempty"`
 	Author   string    `json:"author,omitempty"`
 	URL      string    `json:"url,omitempty"`
+	URLHost  string    `json:"url_host,omitempty"`
 	Source   string    `json:"source,omitempty"`
 	Tags     []string  `json:"tags,omitempty"`
 	Updated  time.Time `json:"updated"`
@@ -292,12 +294,24 @@ func docToIndex(d document.Document) indexDoc {
 		Path:     d.Path,
 		Author:   d.Author,
 		URL:      d.URL,
+		URLHost:  extractHost(d.URL),
 		Source:   d.Source,
 		Tags:     d.Tags,
 		Updated:  d.Updated,
 		Excerpt:  d.Excerpt,
 		Contents: d.Contents,
 	}
+}
+
+func extractHost(rawURL string) string {
+	if rawURL == "" {
+		return ""
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return ""
+	}
+	return u.Hostname()
 }
 
 func buildMapping() mapping.IndexMapping {
@@ -327,6 +341,7 @@ func buildMapping() mapping.IndexMapping {
 	docMapping.AddFieldMappingsAt("author", textField)
 	docMapping.AddFieldMappingsAt("updated", dateField)
 	docMapping.AddFieldMappingsAt("url", storedOnlyKeyword)
+	docMapping.AddFieldMappingsAt("url_host", keywordField)
 	docMapping.AddFieldMappingsAt("excerpt", storedOnlyText)
 
 	m := bleve.NewIndexMapping()
@@ -420,6 +435,9 @@ var fieldAliasReplacer = strings.NewReplacer(
 	"tag:", "tags:",
 	"Tag:", "tags:",
 	"TAG:", "tags:",
+	"url:", "url_host:",
+	"Url:", "url_host:",
+	"URL:", "url_host:",
 )
 
 // unfieldedTerms parses the query string and returns only the terms that
